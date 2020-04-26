@@ -20,17 +20,30 @@
 
   <body>
     <article class='rollbox'>
-      <input class='rollbox--ring' type='number' value='2'/>
-      <input class='rollbox--skill' type='number' value='3'/>
-      <button class='rollbox--trigger' >Roll!</button>
-      <article class='rollbox--dice-tray'>
-      </article>
+      <header class='rollbox--header'>
+        <label>Ring dice <input class='rollbox--ring' type='number' value='3'/></label>
+        <label>Skill dice <input class='rollbox--skill' type='number' value='2'/></label>
+        <button class='rollbox--trigger' >Roll!</button>
+      </header>
+      
+      <article class='dice-tray rollbox--current-dice-tray'></article>
+      <a href='#' class='rollbox--roll-exploding hidden' data-shown-if='exploding'>roll <span data-shows='exploding'>0</span> exploding</a>
+      
       <dl class='rollbox--outcome'>
-        <dt>keeps-left</dt><dd><output class='rollbox--output' data-shows='keepsLeft'>2</output></dd>
-        <dt>successes</dt><dd><output class='rollbox--output' data-shows='successes'></output></dd>
-        <dt>opportunities</dt><dd><output class='rollbox--output' data-shows='opportunities'></output></dd>
-        <dt>strife</dt><dd><output class='rollbox--output' data-shows='strife'></output></dd>
-        <dt>rerolls</dt><dd><output class='rollbox--output' data-shows='rerolls'></output></dd>
+        <dt>keeps-left</dt>
+        <dd><output class='rollbox--output' data-shows='keepsLeft'>3</output></dd>
+        
+        <dt class='hidden' data-shown-if='successes'>successes</dt>
+        <dd class='hidden' data-shown-if='successes'><output class='rollbox--output' data-shows='successes'></output></dd>
+        
+        <dt class='hidden' data-shown-if='opportunities'>opportunities</dt>
+        <dd class='hidden' data-shown-if='opportunities'><output class='rollbox--output' data-shows='opportunities'></output></dd>
+        
+        <dt class='hidden' data-shown-if='strife'>strife</dt>
+        <dd class='hidden' data-shown-if='strife'><output class='rollbox--output' data-shows='strife'></output></dd>
+        
+        <dt class='hidden' data-shown-if='rerolls'>rerolls</dt>
+        <dd class='hidden' data-shown-if='rerolls'><output class='rollbox--output' data-shows='rerolls'></output></dd>
       </dl>
       <!-- roll(document.querySelector("#ring").value, document.querySelector("#ring").value) -->
     </article>
@@ -69,6 +82,14 @@
         
         get symbols() {
           return this.face.split('');
+        }
+        
+        get imageTag() {
+          return this.toString();
+          
+          let img = document.createElement('img')
+          img.setAttribute('href', '...');
+          return img;
         }
         
         roll() {
@@ -118,6 +139,12 @@
         roll() {
           this.dice.forEach(d => d.roll());
         }
+        
+        static forDice(dice) {
+          let ringCount = dice.reduce((count, d) => d.constructor == RingDie ? count + 1 : count, 0);
+          let skillCount = dice.reduce((count, d) => d.constructor == SkillDie ? count + 1 : count, 0);
+          return new DicePool(ringCount, skillCount);
+        }
       }
       
       function roll(ring, skill) {
@@ -133,68 +160,68 @@
         get ringCount() { return this.root.querySelector('.rollbox--ring').value; }
         get skillCount() { return this.root.querySelector('.rollbox--skill').value; }
         
-        get diceTray() { return this.root.querySelector('.rollbox--dice-tray'); }
+        get currentDiceTray() { return this.root.querySelector('.rollbox--current-dice-tray'); }
         get kept() { return this.root.querySelectorAll('.rollbox--keeper---kept'); }
+        get keptInFirst() { return this.root.querySelectorAll('.dice-tray:first-of-type .rollbox--keeper---kept'); }
+        get keptInCurrent() { return this.root.querySelectorAll('.rollbox--current-dice-tray .rollbox--keeper---kept'); }
         
-        get keepsLeft() { return this.ringCount - this.kept.length; }
+        get keepsLeft() { return this.ringCount - this.keptInFirst.length; }
         get successes() { return this.keptCount(k => k.die.rolledSuccesses + k.die.rolledExploding); }
+        get exploding() { return this.keptCount(k => k.die.rolledExploding, true); }
         get opportunities() { return this.keptCount(k => k.die.rolledOpportunities); }
         get strife() { return this.keptCount(k => k.die.rolledStrife); }
         
+        get explodingDice() { return Array.prototype.filter.call(this.keptInCurrent, kept => kept.die.rolledExploding > 0).map(kept => new kept.die.constructor); }
+        
         roll() {
           this.rerolls = 0;
+          
           this.dicePool = new DicePool(this.ringCount, this.skillCount);
           this.dicePool.roll();
+
+          this.resetTrays();
           this.showDice();
           this.updateOutcome();
         }
         
-        keptCount(fn) {
-          return Array.prototype.map.call(this.kept, fn).reduce((c, i) => c + i, 0);
+        rollExploding() {
+          let pool = DicePool.forDice(this.explodingDice);
+          new DiceTray(this.addDiceTray(), pool).addDice(this);
+          this.updateOutcome();
+        }
+        
+        addDiceTray() {
+          let trays = this.root.querySelectorAll('.dice-tray');
+          let last = trays[trays.length - 1];
+          
+          let tray = document.createElement('article');
+          tray.classList.add('dice-tray');
+          last.after(tray);
+          
+          this.setCurrentDiceTray(tray);
+          
+          return tray;
+        }
+        
+        setCurrentDiceTray(tray) {
+          this.root.querySelectorAll('.dice-tray').forEach(t => {
+            t.classList.toggle('rollbox--current-dice-tray', t == tray);
+          });
+        }
+        
+        keptCount(fn, onlyCurrent=false) {
+          let kept = onlyCurrent ? this.keptInCurrent : this.kept;
+          return Array.prototype.map.call(kept, fn).reduce((c, i) => c + i, 0);
+        }
+        
+        resetTrays() {
+          this.root.querySelectorAll('.dice-tray:not(.rollbox--current-dice-tray)').forEach(t => t.remove());
         }
         
         showDice() {
-          let tray = this.diceTray;
-          tray.innerText = '';
-          
-          this.dicePool.dice.forEach(die => {
-            let keepUi = document.createElement('article');
-            keepUi.classList.add('rollbox--keeper');
-            keepUi.die = die;
-            
-            let keepCheckUi = document.createElement('input');
-            keepCheckUi.setAttribute('type', 'checkbox');
-            keepCheckUi.addEventListener('change', e => this.keepChanged(e));
-            
-            let dieUi = document.createElement('label');
-            dieUi.classList.add('die');
-            dieUi.append(keepCheckUi);
-            dieUi.append(die);
-            keepUi.append(dieUi);
-            
-            let actions = document.createElement('article');
-            actions.classList.add('rollbox--keeper-actions');
-            keepUi.append(actions);
-            
-            let rerollLink = document.createElement('a');
-            rerollLink.setAttribute('href', '#');
-            rerollLink.append('reroll');
-            rerollLink.addEventListener('click', e => {
-              e.preventDefault();
-              
-              this.rerolls += 1;
-              this.updateOutcome();
-              
-              die.roll();
-              
-              dieUi.innerText = '';
-              dieUi.append(keepCheckUi);
-              dieUi.append(die);
-            });
-            actions.append(rerollLink);
-            
-            tray.append(keepUi);
-          });
+          let tray = new DiceTray(this.currentDiceTray, this.dicePool);
+          tray.empty();
+          tray.addDice(this);
         }
         
         keepChanged(event) {
@@ -207,12 +234,74 @@
           this.root.querySelectorAll('*[data-shows]').forEach(el => {
             el.innerText = this[el.dataset.shows];
           });
+          this.root.querySelectorAll('*[data-shown-if]').forEach(el => {
+            el.classList.toggle('hidden', !this[el.dataset.shownIf]);
+          });
+        }
+        
+        static rooted(el) {
+          return el.rollbox = el.rollbox || new Rollbox(el);
+        }
+      }
+      
+      class DiceTray {
+        constructor(root, dicePool) {
+          this.root = root;
+          this.dicePool = dicePool;
+        }
+        
+        empty() {
+          this.root.innerText = '';
+        }
+        
+        addDice(rollbox) {
+          this.dicePool.dice.forEach(die => {
+            let keepUi = document.createElement('article');
+            keepUi.classList.add('rollbox--keeper');
+            keepUi.die = die;
+            
+            let keepCheckUi = document.createElement('input');
+            keepCheckUi.classList.add('sr-only');
+            keepCheckUi.setAttribute('type', 'checkbox');
+            keepCheckUi.addEventListener('change', e => rollbox.keepChanged(e));
+            
+            let dieUi = document.createElement('label');
+            dieUi.classList.add('die');
+            dieUi.append(keepCheckUi);
+            dieUi.append(die.imageTag);
+            keepUi.append(dieUi);
+            
+            let actions = document.createElement('article');
+            actions.classList.add('rollbox--keeper-actions');
+            keepUi.append(actions);
+            
+            let rerollLink = document.createElement('a');
+            rerollLink.setAttribute('href', '#');
+            rerollLink.append('reroll');
+            rerollLink.addEventListener('click', e => {
+              e.preventDefault();
+              
+              die.roll();
+              
+              rollbox.rerolls += 1;
+              rollbox.updateOutcome();
+              
+              dieUi.innerText = '';
+              dieUi.append(keepCheckUi);
+              dieUi.append(die.imageTag);
+            });
+            actions.append(rerollLink);
+            
+            this.root.append(keepUi);
+          });
         }
       }
       
       document.addEventListener('click', e => {
         if (e.target.matches('.rollbox--trigger')) {
-          new Rollbox(e.target.closest('.rollbox')).roll(event);
+          Rollbox.rooted(e.target.closest('.rollbox')).roll(event);
+        } else if (e.target.matches('.rollbox--roll-exploding')) {
+          Rollbox.rooted(e.target.closest('.rollbox')).rollExploding(event);
         }
       })
       
@@ -229,6 +318,17 @@
       document.write('</table>');
     </script>
     <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        border: 0;
+      }
+      
       .rollbox {
         border: 1px solid #ccc;
         border-radius: 3px;
@@ -237,6 +337,40 @@
         margin: 10px;
       }
       
+        .rollbox--header {
+          font-size: 150%;
+          padding-bottom: 5px;
+          margin-bottom: 10px;
+          border-bottom: 1px solid #ccc;
+        }
+        
+          .rollbox--header input {
+            width: 5ch;
+          }
+      
+        .rollbox--roll-exploding {
+          font-size: 150%;
+          border: 1px solid #ccc;
+          padding: 5px 25px;
+          border-radius: 3;
+          display: inline-block;
+          animation: rumble 1s infinite;
+        }
+        
+        @keyframes rumble {
+            0% { transform: translate( 0px) rotate( 0deg); }
+           10% { transform: translate( 2px) rotate( 1deg); }
+           20% { transform: translate(-2px) rotate(-1deg); }
+           30% { transform: translate(-3px) rotate( 1deg); }
+           40% { transform: translate( 4px) rotate(-1deg); }
+           50% { transform: translate( 0px) rotate( 2deg); }
+           60% { transform: translate(-1px) rotate( 1deg); }
+           70% { transform: translate(-4px) rotate( 2deg); }
+           80% { transform: translate( 2px) rotate( 1deg); }
+           90% { transform: translate( 1px) rotate(-1deg); }
+          100% { transform: translate(-2px) rotate(-1deg); }
+        }
+        
         .rollbox--outcome {
           margin-top: 10px;
           display: grid;
@@ -248,7 +382,7 @@
           padding-right: 1em;
         }
         
-        .rollbox--dice-tray {
+        .dice-tray {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
           grid-gap: 5px;
@@ -260,10 +394,10 @@
           border-radius: 3px;
           display: flex;
         }
-        
-        .rollbox--keeper input[type=checkbox] {
-          display: none;
-        }
+          .rollbox--keeper label:focus-within {
+            outline: 2px solid blue;
+            outline-color: -webkit-focus-ring-color;
+          }
         
           .rollbox--keeper---kept {
             background-color: #ccc;
