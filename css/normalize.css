@@ -347,3 +347,9 @@ template {
 [hidden] {
   display: none;
 }
+
+
+dl, dt, dd {
+  margin: 0;
+}
+

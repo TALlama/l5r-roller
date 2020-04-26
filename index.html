@@ -1,41 +1,479 @@
 <!doctype html>
 <html class="no-js" lang="">
 
-<head>
-  <meta charset="utf-8">
-  <title></title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
-  <!-- Place favicon.ico in the root directory -->
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="apple-touch-icon" href="icon.png">
+    <!-- Place favicon.ico in the root directory -->
 
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/l5r.css">
 
-  <meta name="theme-color" content="#fafafa">
-</head>
+    <meta name="theme-color" content="#fafafa">
+  </head>
 
-<body>
-  <!--[if IE]>
-    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
-  <![endif]-->
+  <body>
+    <article class='rollbox'>
+      <input class='rollbox--ring' type='number' value='2'/>
+      <input class='rollbox--skill' type='number' value='3'/>
+      <button class='rollbox--trigger' >Roll!</button>
+      <article class='rollbox--dice-tray'>
+      </article>
+      <dl class='rollbox--outcome'>
+        <dt>keeps-left</dt><dd><output class='rollbox--output' data-shows='keepsLeft'>2</output></dd>
+        <dt>successes</dt><dd><output class='rollbox--output' data-shows='successes'></output></dd>
+        <dt>opportunities</dt><dd><output class='rollbox--output' data-shows='opportunities'></output></dd>
+        <dt>strife</dt><dd><output class='rollbox--output' data-shows='strife'></output></dd>
+        <dt>rerolls</dt><dd><output class='rollbox--output' data-shows='rerolls'></output></dd>
+      </dl>
+      <!-- roll(document.querySelector("#ring").value, document.querySelector("#ring").value) -->
+    </article>
+    
+    <script>
+      class Rollable {
+        get successes() { return this.maxCountOf('S'); }
+        get exploding() { return this.maxCountOf('R'); }
+        get opportunities() { return this.maxCountOf('O'); }
+        get strife() { return this.maxCountOf('X'); }
+        
 
-  <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
-  <script src="js/vendor/modernizr-3.8.0.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-  <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.4.1.min.js"><\/script>')</script>
-  <script src="js/plugins.js"></script>
-  <script src="js/main.js"></script>
-
-  <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
-  <script>
-    window.ga = function () { ga.q.push(arguments) }; ga.q = []; ga.l = +new Date;
-    ga('create', 'UA-XXXXX-Y', 'auto'); ga('set','transport','beacon'); ga('send', 'pageview')
-  </script>
-  <script src="https://www.google-analytics.com/analytics.js" async></script>
-</body>
+        get rolledSuccesses() { return this.rolledCountOf('S'); }
+        get rolledExploding() { return this.rolledCountOf('R'); }
+        get rolledOpportunities() { return this.rolledCountOf('O'); }
+        get rolledStrife() { return this.rolledCountOf('X'); }
+        
+        rolledCountOf(symbol) {
+          return this.symbols.reduce((count, sym) => sym === symbol ? count + 1 : count, 0);
+        }
+        
+        maxCountOf(symbol, keeping=this.ringCount || 0) {
+          return Math.min(keeping, this.rolledCountOf(symbol));
+        }
+        
+        toString() {
+          return this.symbols.join(", ");
+        }
+      }
+      
+      class Die extends Rollable {
+        get face() {
+          this._face || this.roll();
+          return this._face;
+        }
+        
+        get symbols() {
+          return this.face.split('');
+        }
+        
+        roll() {
+          let faces = this.possibleFaces;
+          this._face = faces[Math.floor(Math.random() * faces.length)];
+        }
+        
+        toString() {
+          return this.face;
+        }
+      }
+      
+      class RingDie extends Die {
+        get possibleFaces() {return ['-', 'OX', 'O', 'SX', 'S', 'RX'];}
+        toString() { return `[${super.toString()}]`; }
+      }
+      
+      class SkillDie extends Die {
+        get possibleFaces() {return ['-', '-', 'O', 'O', 'O', 'SX', 'SX', 'S', 'S', 'SO', 'RX', 'R'];}
+        toString() { return `{${super.toString()}}`; }
+      }
+      
+      class DicePool extends Rollable {
+        constructor(ring, skill) {
+          super();
+          
+          this.ringCount = Number(ring);
+          this.skillCount = Number(skill);
+        
+          this.dice = [];
+          for (let r = 0; r < this.ringCount; r++) {
+            this.dice.push(new RingDie());
+          }
+          for (let s = 0; s < this.skillCount; s++) {
+            this.dice.push(new SkillDie());
+          }
+        }
+        
+        get faces() {
+          return this.dice.map(d => d.face).sort();
+        }
+        
+        get symbols() {
+          return this.dice.flatMap(d => d.symbols).sort();
+        }
+        
+        roll() {
+          this.dice.forEach(d => d.roll());
+        }
+      }
+      
+      function roll(ring, skill) {
+        let pool = new DicePool(ring, skill);
+        alert(pool.symbols.join("|"));
+      }
+      
+      class Rollbox {
+        constructor(root) {
+          this.root = root;
+        }
+        
+        get ringCount() { return this.root.querySelector('.rollbox--ring').value; }
+        get skillCount() { return this.root.querySelector('.rollbox--skill').value; }
+        
+        get diceTray() { return this.root.querySelector('.rollbox--dice-tray'); }
+        get kept() { return this.root.querySelectorAll('.rollbox--keeper---kept'); }
+        
+        get keepsLeft() { return this.ringCount - this.kept.length; }
+        get successes() { return this.keptCount(k => k.die.rolledSuccesses + k.die.rolledExploding); }
+        get opportunities() { return this.keptCount(k => k.die.rolledOpportunities); }
+        get strife() { return this.keptCount(k => k.die.rolledStrife); }
+        
+        roll() {
+          this.rerolls = 0;
+          this.dicePool = new DicePool(this.ringCount, this.skillCount);
+          this.dicePool.roll();
+          this.showDice();
+          this.updateOutcome();
+        }
+        
+        keptCount(fn) {
+          return Array.prototype.map.call(this.kept, fn).reduce((c, i) => c + i, 0);
+        }
+        
+        showDice() {
+          let tray = this.diceTray;
+          tray.innerText = '';
+          
+          this.dicePool.dice.forEach(die => {
+            let keepUi = document.createElement('article');
+            keepUi.classList.add('rollbox--keeper');
+            keepUi.die = die;
+            
+            let keepCheckUi = document.createElement('input');
+            keepCheckUi.setAttribute('type', 'checkbox');
+            keepCheckUi.addEventListener('change', e => this.keepChanged(e));
+            
+            let dieUi = document.createElement('label');
+            dieUi.classList.add('die');
+            dieUi.append(keepCheckUi);
+            dieUi.append(die);
+            keepUi.append(dieUi);
+            
+            let actions = document.createElement('article');
+            actions.classList.add('rollbox--keeper-actions');
+            keepUi.append(actions);
+            
+            let rerollLink = document.createElement('a');
+            rerollLink.setAttribute('href', '#');
+            rerollLink.append('reroll');
+            rerollLink.addEventListener('click', e => {
+              e.preventDefault();
+              
+              this.rerolls += 1;
+              this.updateOutcome();
+              
+              die.roll();
+              
+              dieUi.innerText = '';
+              dieUi.append(keepCheckUi);
+              dieUi.append(die);
+            });
+            actions.append(rerollLink);
+            
+            tray.append(keepUi);
+          });
+        }
+        
+        keepChanged(event) {
+          let keeper = event.target.closest('.rollbox--keeper');
+          keeper.classList.toggle('rollbox--keeper---kept', event.target.checked);
+          this.updateOutcome();
+        }
+        
+        updateOutcome() {
+          this.root.querySelectorAll('*[data-shows]').forEach(el => {
+            el.innerText = this[el.dataset.shows];
+          });
+        }
+      }
+      
+      document.addEventListener('click', e => {
+        if (e.target.matches('.rollbox--trigger')) {
+          new Rollbox(e.target.closest('.rollbox')).roll(event);
+        }
+      })
+      
+      document.querySelector('.rollbox--trigger').click();
+      
+      document.write('<table>');
+      document.write('<thead><tr><th>Roll</th><th>Successes</th><th>Exploding</th><th>Opportunities</th><th>Strife</th><th>Faces</th></tr></tbody>');
+      for (let r = 1; r < 5; r++) {
+        for (let s = 0; s < 5; s++) {
+          let pool = new DicePool(r, s);
+          document.write(`    <tr class='tn-${pool.successes}'><th>${r}r${s}</th><td>${pool.successes}</td><td>${pool.exploding}</td><td>${pool.opportunities}</td><td>${pool.strife}</td><td>${pool.dice.join(" ")}</td></tr>`);
+        }
+      }
+      document.write('</table>');
+    </script>
+    <style>
+      .rollbox {
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-shadow: 3px 3px 3px #ddd;
+        padding: 10px;
+        margin: 10px;
+      }
+      
+        .rollbox--outcome {
+          margin-top: 10px;
+          display: grid;
+          grid-template-columns: 1fr 10fr;
+        }
+        
+        .rollbox--outcome dt {
+          text-align: end;
+          padding-right: 1em;
+        }
+        
+        .rollbox--dice-tray {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          grid-gap: 5px;
+          padding: 5px 0;
+        }
+        
+        .rollbox--keeper {
+          border: 1px solid #ccc;
+          border-radius: 3px;
+          display: flex;
+        }
+        
+        .rollbox--keeper input[type=checkbox] {
+          display: none;
+        }
+        
+          .rollbox--keeper---kept {
+            background-color: #ccc;
+          }
+          
+          .rollbox--keeper label {
+            padding: 5px;
+            font-size: 200%;
+            flex-grow: 1;
+          }
+          
+          .rollbox--keeper-actions {
+            border-left: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            font-size: 80%;
+          }
+          
+            .rollbox--keeper-actions a {
+              padding: 5px;
+            }
+      
+      tr.tn-0 td {background-color: hsl(  0, 40%, 90%);}
+      tr.tn-1 td {background-color: hsl(120, 40%, 90%);}
+      tr.tn-2 td {background-color: hsl(120, 50%, 80%);}
+      tr.tn-3 td {background-color: hsl(120, 60%, 70%);}
+      tr.tn-4 td {background-color: hsl(120, 70%, 60%);}
+      tr.tn-5 td {background-color: hsl(120, 80%, 50%);}
+      tr.tn-6 td {background-color: hsl(120, 90%, 40%);}
+    </style>
+    
+    
+    <article style='display: none' class='character character---l5r'>
+      <article class='sheet-mode sheet-mode---narrative'>
+        <dl class='stat-block stat-block---identity'>
+          <dt>Character Name</dt><dd><input type='text'/></dd>
+          <dt>Player Name</dt><dd><input type='text'/></dd>
+          <dt>Clan</dt><dd><input type='text'/></dd>
+          <dt>Family</dt><dd><input type='text'/></dd>
+          <dt>School</dt><dd><input type='text'/></dd>
+          <dt>School Rank</dt><dd><input type='number' value='1'></dd>
+          <dt>Roles</dt><dd><input type='text'/></dd>
+        </dl>
+        
+        <dl class='stat-block stat-block---rings'>
+          <dt>🌬 Air</dt><dd><input type='number' value='1'/></dd>
+          <dt>⛰ Earth</dt><dd><input type='number' value='1'/></dd>
+          <dt>🔥 Fire</dt><dd><input type='number' value='1'/></dd>
+          <dt>🌊 Water</dt><dd><input type='number' value='1'/></dd>
+          <dt>🔮 Void</dt><dd><input type='number' value='1'/></dd>
+        </dl>
+        
+        <dl class='stat-block stat-block--circles stat-block---social'>
+          <dt>Honor</dt><dd><input type='number'/></dd>
+          <dt>Glory</dt><dd><input type='number'/></dd>
+          <dt>Status</dt><dd><input type='number'/></dd>
+        </dl>
+        
+        <dl class='stat-block stat-block---impulses'>
+          <dt>Ninjō</dt><dd><textarea></textarea></dd>
+          <dt>Giri</dt><dd><textarea></textarea></dd>
+        </dl>
+        
+        <div class='character--block character--block---titles'>
+          <header class='character--block-header'>Titles</header>
+          <textarea></textarea>
+        </div>
+        <article class='character--block character--block---skills'>
+          <table class='skills-table'>
+            <thead><tr><th>Artisan Skills</th><th>Ranks</th><th>Approaches</th></tr></thead>
+            <tbody>
+              <tr>
+                <th scope='row'>Aesthetics</th><td><input type="number" value="0"/></td>
+                <td rowspan='5'>
+                  <article class='skill-table--approaches'>
+                    <span class='approach'>Refine</span><span class='icon'>🌬</span>
+                    <span class='approach'>Restore</span><span class='icon'>⛰</span>
+                    <span class='approach'>Invent</span><span class='icon'>🔥</span>
+                    <span class='approach'>Adapt</span><span class='icon'>🌊</span>
+                    <span class='approach'>Attune</span><span class='icon'>🔮</span>
+                  </article>
+                </td>
+              </tr>
+              <tr><th scope='row'>Composition</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Design</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Smithing</th><td><input type="number" value="0"/></td></tr>
+            </tbody>
+          </table>
+          <table class='skills-table'>
+            <thead><tr><th>Martial Skills</th><th>Ranks</th><th>Approaches</th></tr></thead>
+            <tbody>
+              <tr>
+                <th scope='row'>Fitness</th><td><input type="number" value="0"/></td>
+                <td rowspan='5'>
+                  <article class='skill-table--approaches'>
+                    <span class='approach'>Feint</span><span class='icon'>🌬</span>
+                    <span class='approach'>Withstand</span><span class='icon'>⛰</span>
+                    <span class='approach'>Overwhelm</span><span class='icon'>🔥</span>
+                    <span class='approach'>Shift</span><span class='icon'>🌊</span>
+                    <span class='approach'>Sacrifice</span><span class='icon'>🔮</span>
+                  </article>
+                </td>
+              </tr>
+              <tr><th scope='row'>Martial Arts [Melee]</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Martial Arts [Ranged]</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Martial Arts [Unarmed]</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Meditation</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Tactics</th><td><input type="number" value="0"/></td></tr>
+            </tbody>
+          </table>
+          <table class='skills-table'>
+            <thead><tr><th>Scholar Skills</th><th>Ranks</th><th>Approaches</th></tr></thead>
+            <tbody>
+              <tr>
+                <th scope='row'>Culture</th><td><input type="number" value="0"/></td>
+                <td rowspan='5'>
+                  <article class='skill-table--approaches'>
+                    <span class='approach'>Analyze</span><span class='icon'>🌬</span>
+                    <span class='approach'>Recall</span><span class='icon'>⛰</span>
+                    <span class='approach'>Theorize</span><span class='icon'>🔥</span>
+                    <span class='approach'>Survey</span><span class='icon'>🌊</span>
+                    <span class='approach'>Sense</span><span class='icon'>🔮</span>
+                  </article>
+                </td>
+              </tr>
+              <tr><th scope='row'>Government</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Medicine</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Sentiment</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Theology</th><td><input type="number" value="0"/></td></tr>
+            </tbody>
+          </table>
+          <table class='skills-table'>
+            <thead><tr><th>Social Skills</th><th>Ranks</th><th>Approaches</th></tr></thead>
+            <tbody>
+              <tr>
+                <th scope='row'>Command</th><td><input type="number" value="0"/></td>
+                <td rowspan='5'>
+                  <article class='skill-table--approaches'>
+                    <span class='approach'>Trick</span><span class='icon'>🌬</span>
+                    <span class='approach'>Reason</span><span class='icon'>⛰</span>
+                    <span class='approach'>Incite</span><span class='icon'>🔥</span>
+                    <span class='approach'>Charm</span><span class='icon'>🌊</span>
+                    <span class='approach'>Enlighten</span><span class='icon'>🔮</span>
+                  </article>
+                </td>
+              </tr>
+              <tr><th scope='row'>Courtesy</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Games</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Performance</th><td><input type="number" value="0"/></td></tr>
+            </tbody>
+          </table>
+          <table class='skills-table'>
+            <thead><tr><th>Trade Skills</th><th>Ranks</th><th>Approaches</th></tr></thead>
+            <tbody>
+              <tr>
+                <th scope='row'>Commerce</th><td><input type="number" value="0"/></td>
+                <td rowspan='5'>
+                  <article class='skill-table--approaches'>
+                    <span class='approach'>Con</span><span class='icon'>🌬</span>
+                    <span class='approach'>Produce</span><span class='icon'>⛰</span>
+                    <span class='approach'>Innovate</span><span class='icon'>🔥</span>
+                    <span class='approach'>Exchange</span><span class='icon'>🌊</span>
+                    <span class='approach'>Subsist</span><span class='icon'>🔮</span>
+                  </article>
+                </td>
+              </tr>
+              <tr><th scope='row'>Labor</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Seafaring</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Skulduggery</th><td><input type="number" value="0"/></td></tr>
+              <tr><th scope='row'>Survival</th><td><input type="number" value="0"/></td></tr>
+            </tbody>
+          </table>
+        </article>
+        <article class='character--block character--block---advantages-and-disadvantages'>
+          <article class='stat-list stat-list---distinctions'>
+            <header class='stat-list--header'>Distinctions<small>Reroll up to two dice of your choice when a distinction helps you on a check.</small></header>
+            <textarea></textarea>
+          </article>
+          <article class='stat-list stat-list---adversities'>
+            <header class='stat-list--header'>Adversities<small>Reroll two dice containing success or exploding success symbols when an adversity hinders you on a check. If you fail, gain 1 Void point.</small></header>
+            <textarea></textarea>
+          </article>
+          <article class='stat-list stat-list---passions'>
+            <header class='stat-list--header'>Passions<small>After performing a check related to your passion, remove 3 strife.</small></header>
+            <textarea></textarea>
+          </article>
+          <article class='stat-list stat-list---anxieties'>
+            <header class='stat-list--header'>Anxieties<small>After performing a check related to your anxiety, receive 3 strife. Then, gain 1 Void point (limit once per scene).</small></header>
+            <textarea></textarea>
+          </article>
+          <article class='stat-list stat-list---personality'>
+            <header class='stat-list--header'>Personality, Habits & Quirks</header>
+            <textarea></textarea>
+          </article>
+        </article>
+        <article class='character--block character--block---relationships'>
+          <header class='character--block-header'>Other Character's Name<small>Standing & Notes</small></header>
+          <textarea></textarea>
+        </article>
+        <dl class='stat-block stat-block--circles stat-block---experience'>
+          <dt>Total</dt><dd><input type='number'/></dd>
+          <dt>Spent</dt><dd><input type='number'/></dd>
+          <dt>Saved</dt><dd><input type='number'/></dd>
+        </dl>
+      </article>
+      <article class='sheet-mode sheet-mode---conflict'>
+      </article>
+    </article>
+    
+    <p>Based on the <a href='https://images-cdn.fantasyflightgames.com/filer_public/38/40/384080cf-4e60-4b7d-9284-ced94df1a9f7/l5r02_character-sheet-2-page.pdf'>official character sheet</a></p>
+  </body>
 
 </html>

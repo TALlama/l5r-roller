@@ -1,0 +1,201 @@
+* {
+  box-sizing: border-box;
+}
+
+.character---l5r {
+  display: grid;
+  width: 8.5in;
+  font-family: sans-serif;
+  
+  --bg-dark: hsl(0, 0%, 20%);
+  --bg-light: hsl(0, 0%, 40%);
+}
+
+.character---l5r input,
+textarea {
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+  .character---l5r input:hover,
+  .character---l5r textarea:hover {
+    border-color: #ccc;
+  }
+
+  .character---l5r input[type=text] {
+    width: 15ch;
+    text-align: right;
+  }
+
+  .character---l5r input[type=number] {
+    width: 7ch;
+    text-align: right;
+  }
+
+.sheet-mode---narrative {
+  display: grid;
+  grid-template-areas:
+    "identity rings rings social"
+    "identity rings rings impulses"
+    "skills skills titles titles"
+    "skills skills advdis advdis"
+    "skills skills relationships relationships"
+    "experience experience relationships relationships";
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  justify-content: stretch;
+}
+
+  
+
+.sheet-mode > * {
+  border: 1px solid red;
+}
+  
+  .stat-block---identity {
+    grid-area: identity;
+  }
+  
+  .stat-block---rings {
+    grid-area: rings;
+  }
+  
+  .stat-block---social {
+    grid-area: social;
+  }
+  
+  .stat-block---impulses {
+    grid-area: impulses;
+  }
+  
+  .character--block---titles {
+    grid-area: titles;
+  }
+  
+  .character--block---skills {
+    grid-area: skills;
+  }
+  
+  .character--block---advantages-and-disadvantages {
+    grid-area: advdis;
+  }
+  
+  .character--block---relationships {
+    grid-area: relationships;
+  }
+  
+  .stat--block---experience {
+    grid-area: experience;
+  }
+
+.stat-list--header,
+.character--block-header {
+  display: flex;
+  background: var(--bg-light);
+  color: white;
+}
+
+.stat-list:nth-child(2n) .stat-list--header {
+  background: var(--bg-dark);
+}
+
+.stat-list--header small {
+  width: 80%;
+  margin-left: auto;
+}
+
+
+.stat-list textarea,
+.character--block textarea {
+  width: 100%;
+}
+
+.stat-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.stat-block dt {
+  grid-column: 1;
+}
+
+.stat-block--circles dt {
+  grid-column: inherit;
+  grid-row: 2;
+  text-align: center;
+}
+
+.stat-block--circles dd {
+  border: 10px solid #ddd;
+  border-radius: 50%;
+  text-align: center;
+  display: flex;
+}
+
+.stat-block--circles dd input {
+  text-align: center;
+}
+
+.stat-block---social {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.stat-block---social dt {
+  grid-row: 2;
+}
+
+.stat-block---social dd {
+  grid-row: 1;
+}
+
+.stat-block---social dt:nth-child(1),
+.stat-block---social dt:nth-child(1) + dd {
+  grid-column: 1;
+}
+
+.stat-block---social dt:nth-child(3),
+.stat-block---social dt:nth-child(3) + dd {
+  grid-column: 2;
+}
+
+.stat-block---social dt:nth-child(5),
+.stat-block---social dt:nth-child(5) + dd {
+  grid-column: 3;
+}
+
+
+
+.skills-table th {
+  text-align: left;
+}
+
+.skills-table thead {
+  text-transform: uppercase;
+  font-size: 90%;
+  letter-spacing: .1em;
+}
+
+.skills-table thead th {
+  background-color: var(--bg-dark);
+  color: white;
+}
+
+.skills-table:nth-child(2n) thead th {
+  background-color: var(--bg-light);
+}
+
+.skills-table thead th:nth-child(1) {
+  width: 80%;
+}
+
+.skills-table th[scope=row] {
+  font-weight: 400;
+}
+
+.skills-table input {
+  text-align: right;
+}
+
+.skill-table--approaches {
+  display: grid;
+  grid-template-columns: 1fr 2ch;
+}
