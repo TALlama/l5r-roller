@@ -85,10 +85,9 @@
         }
         
         get imageTag() {
-          return this.toString();
-          
           let img = document.createElement('img')
-          img.setAttribute('href', '...');
+          img.setAttribute('src', `/img/dice/${this.dieType}-${this.face}.jpeg`);
+          img.setAttribute('width', `70px`);
           return img;
         }
         
@@ -104,11 +103,13 @@
       
       class RingDie extends Die {
         get possibleFaces() {return ['-', 'OX', 'O', 'SX', 'S', 'RX'];}
+        get dieType() { return 'ring'; }
         toString() { return `[${super.toString()}]`; }
       }
       
       class SkillDie extends Die {
         get possibleFaces() {return ['-', '-', 'O', 'O', 'O', 'SX', 'SX', 'S', 'S', 'SO', 'RX', 'R'];}
+        get dieType() { return 'skill'; }
         toString() { return `{${super.toString()}}`; }
       }
       
@@ -307,15 +308,15 @@
       
       document.querySelector('.rollbox--trigger').click();
       
-      document.write('<table>');
-      document.write('<thead><tr><th>Roll</th><th>Successes</th><th>Exploding</th><th>Opportunities</th><th>Strife</th><th>Faces</th></tr></tbody>');
-      for (let r = 1; r < 5; r++) {
-        for (let s = 0; s < 5; s++) {
-          let pool = new DicePool(r, s);
-          document.write(`    <tr class='tn-${pool.successes}'><th>${r}r${s}</th><td>${pool.successes}</td><td>${pool.exploding}</td><td>${pool.opportunities}</td><td>${pool.strife}</td><td>${pool.dice.join(" ")}</td></tr>`);
-        }
-      }
-      document.write('</table>');
+      //document.write('<table>');
+      //document.write('<thead><tr><th>Roll</th><th>Successes</th><th>Exploding</th><th>Opportunities</th><th>Strife</th><th>Faces</th></tr></tbody>');
+      //for (let r = 1; r < 5; r++) {
+      //  for (let s = 0; s < 5; s++) {
+      //    let pool = new DicePool(r, s);
+      //    document.write(`    <tr class='tn-${pool.successes}'><th>${r}r${s}</th><td>${pool.successes}</td><td>${pool.exploding}</td><td>${pool.opportunities}</td><td>${pool.strife}</td><td>${pool.dice.join(" ")}</td></tr>`);
+      //  }
+      //}
+      //document.write('</table>');
     </script>
     <style>
       .sr-only {
@@ -607,7 +608,7 @@
       </article>
     </article>
     
-    <p>Based on the <a href='https://images-cdn.fantasyflightgames.com/filer_public/38/40/384080cf-4e60-4b7d-9284-ced94df1a9f7/l5r02_character-sheet-2-page.pdf'>official character sheet</a></p>
+    <!-- p>Based on the <a href='https://images-cdn.fantasyflightgames.com/filer_public/38/40/384080cf-4e60-4b7d-9284-ced94df1a9f7/l5r02_character-sheet-2-page.pdf'>official character sheet</a></p -->
   </body>
 
 </html>
