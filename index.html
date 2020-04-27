@@ -101,16 +101,23 @@
       <a href='#' class='rollbox--roll-exploding hidden' data-shown-if='exploding'>roll <span data-shows='exploding'>0</span> exploding</a>
       
       <dl class='rollbox--outcome'>
-        <dt>keeps-left</dt>
-        <dd><output class='rollbox--output' data-shows='keepsLeft'>3</output></dd>
+        <dt>keeps left</dt>
+        <dd><output class='rollbox--output'><span data-shows='keepsLeft'>3</span> <span data-shown-if='keepsLeft'>(click dice to keep them)</span></output></dd>
         
-        <dt class='hidden' data-shown-if='successes'>successes</dt>
+        <dt class='hidden' data-shown-if='successes'>
+          <svg height='20' viewBox='0 0 20 20'><use xlink:href='#success'></svg>
+          <span data-shown-if='exploding'>
+            +
+            <svg height='20' viewBox='0 0 20 20'><use xlink:href='#explode'></svg>
+          </span>
+          successes
+        </dt>
         <dd class='hidden' data-shown-if='successes'><output class='rollbox--output' data-shows='successes'></output></dd>
         
-        <dt class='hidden' data-shown-if='opportunities'>opportunities</dt>
+        <dt class='hidden' data-shown-if='opportunities'><svg height='20' viewBox='0 0 20 20'><use xlink:href='#opportunity'></svg> opportunities</dt>
         <dd class='hidden' data-shown-if='opportunities'><output class='rollbox--output' data-shows='opportunities'></output></dd>
         
-        <dt class='hidden' data-shown-if='strife'>strife</dt>
+        <dt class='hidden' data-shown-if='strife'><svg height='20' viewBox='0 0 20 20'><use xlink:href='#strife'></svg> strife</dt>
         <dd class='hidden' data-shown-if='strife'><output class='rollbox--output' data-shows='strife'></output></dd>
         
         <dt class='hidden' data-shown-if='rerolls'>rerolls</dt>
@@ -451,7 +458,7 @@
         .rollbox--outcome {
           margin-top: 10px;
           display: grid;
-          grid-template-columns: 1fr 10fr;
+          grid-template-columns: 1fr 1fr;
         }
         
         .rollbox--outcome dt {
