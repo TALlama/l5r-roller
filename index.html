@@ -126,6 +126,17 @@
       <!-- roll(document.querySelector("#ring").value, document.querySelector("#ring").value) -->
     </article>
     
+    <article>
+      <header>Reminders</header>
+      <ul>
+        <li>If you activate an <strong>advantage</strong>, you <em>may</em> reroll two dice</li>
+        <li>If you activate a <strong>disadvantage</strong>, you <em>must</em> reroll two successes</li>
+        <li>If you activate both an <strong>advantage and disadvantage</strong>, <em>neither</em> applies</li>
+        <li>If you're in <strong>Fire stance</strong> and succeed, each strife gives a <em>bonus success</em></li>
+        <li>If you're in <strong>Void stance</strong>, strife <em>doesn't affect you</em></li>
+      </ul>
+    </article>
+    
     <script>
       class Rollable {
         get successes() { return this.maxCountOf('S'); }

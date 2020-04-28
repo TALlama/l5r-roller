@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: white;
+}
+
 .character---l5r {
   display: grid;
   width: 8.5in;
