@@ -1,6 +1,6 @@
 {
-  "short_name": "",
-  "name": "",
+  "short_name": "L5R Dice Roller",
+  "name": "Dice Roller for Legend of the Five Rings",
   "icons": [{
     "src": "icon.png",
     "type": "image/png",

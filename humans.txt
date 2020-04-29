@@ -3,13 +3,18 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
+    Seth A. Roby -- Lead -- @TALlama
 
 # THANKS
 
-    <name>
+    David Burk, for making us play a new game
+    Andrew Ardisone, for always wanting more
+    Morgan Stites, for being up for these shenanigans
+    Sam Smith, for remembering it's Monday
 
 # TECHNOLOGY COLOPHON
 
     CSS3, HTML5
-    Apache Server Configs, jQuery, Modernizr, Normalize.css
+    GitHub Pages
+    Normalize.css
+    Vanilla JavaScript I wrote by hand
