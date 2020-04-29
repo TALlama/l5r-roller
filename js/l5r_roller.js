@@ -262,11 +262,11 @@ class DiceTray {
   }
 }
 
-document.addEventListener('click', e => {
-  if (e.target.matches('.rollbox--trigger')) {
-    Rollbox.rooted(e.target.closest('.rollbox')).roll(event);
-  } else if (e.target.matches('.rollbox--roll-exploding')) {
-    Rollbox.rooted(e.target.closest('.rollbox')).rollExploding(event);
+document.addEventListener('click', event => {
+  if (event.target.matches('.rollbox--trigger')) {
+    Rollbox.rooted(event.target.closest('.rollbox')).roll(event);
+  } else if (event.target.matches('.rollbox--roll-exploding')) {
+    Rollbox.rooted(event.target.closest('.rollbox')).rollExploding(event);
   }
 })
 
