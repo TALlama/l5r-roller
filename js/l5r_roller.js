@@ -157,13 +157,13 @@ class Rollbox {
     this.dicePool.roll();
 
     this.resetTrays();
-    this.showDice();
+    this.showDice(this.dicePool, {roll: true});
     this.updateOutcome();
   }
   
   rollExploding() {
     let pool = DicePool.forDice(this.explodingDice);
-    new DiceTray(this.addDiceTray(), pool).addDice(this);
+    new DiceTray(this.addDiceTray(), pool).addDice(this, {roll: true});
     this.updateOutcome();
   }
   
@@ -202,16 +202,16 @@ class Rollbox {
     
     let tray = this.currentDiceTray.tray;
     tray.addDie(die);
-    this.showDice(tray.dicePool);
+    this.showDice(tray.dicePool, {roll: die});
     this.updateOutcome();
   }
   
-  showDice(dicePool = this.dicePool) {
+  showDice(dicePool = this.dicePool, options) {
     let trayRoot = this.currentDiceTray;
     
     let tray = trayRoot.tray || new DiceTray(trayRoot, dicePool);
     tray.empty();
-    tray.addDice(this);
+    tray.addDice(this, options);
   }
   
   keepChanged(event) {
@@ -250,7 +250,7 @@ class DiceTray {
     this.dicePool.addDie(die);
   }
   
-  addDice(rollbox) {
+  addDice(rollbox, {roll} = {roll: false}) {
     this.dicePool.dice.forEach(die => {
       let keepUi = document.createElement('article');
       keepUi.classList.add('rollbox--keeper');
@@ -268,8 +268,10 @@ class DiceTray {
       
       let dieUi = document.createElement('label');
       dieUi.classList.add('die');
+      dieUi.classList.toggle('die---rerolling', roll === true || roll == die);
       dieUi.append(keepCheckUi);
       dieUi.append(die.imageTag);
+      dieUi.addEventListener('animationend', (e) => dieUi.classList.remove('die---rerolling'));
       keepUi.append(dieUi);
       
       let actions = document.createElement('article');
@@ -292,12 +294,7 @@ class DiceTray {
         dieUi.append(die.imageTag);
         
         
-        var removeReroll = (e) => {
-          dieUi.classList.remove('dice-tray--die---rerolling');
-          dieUi.removeEventListener('animationend', removeReroll);
-        }
-        dieUi.addEventListener('animationend', removeReroll);
-        dieUi.classList.add('dice-tray--die---rerolling');
+        dieUi.classList.add('die---rerolling');
       });
       actions.append(rerollLink);
       
