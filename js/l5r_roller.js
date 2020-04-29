@@ -290,6 +290,14 @@ class DiceTray {
         dieUi.innerText = '';
         dieUi.append(keepCheckUi);
         dieUi.append(die.imageTag);
+        
+        
+        var removeReroll = (e) => {
+          dieUi.classList.remove('dice-tray--die---rerolling');
+          dieUi.removeEventListener('animationend', removeReroll);
+        }
+        dieUi.addEventListener('animationend', removeReroll);
+        dieUi.classList.add('dice-tray--die---rerolling');
       });
       actions.append(rerollLink);
       

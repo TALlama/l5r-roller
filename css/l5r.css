@@ -74,6 +74,20 @@ html {
       border-top: 1px solid #ccc;
       padding-top: 10px;
     }
+    
+    .dice-tray--die---rerolling {
+      animation: reroll .4s;
+    }
+    
+    @keyframes reroll {
+        0% { transform: rotate(  0deg) scale(1.0); }
+        1% { transform: rotate(  9deg) scale( .2); }
+       10% { transform: rotate( 90deg) scale( .4); }
+       20% { transform: rotate(180deg) scale( .6); }
+       30% { transform: rotate(270deg) scale( .8); }
+       40% { transform: rotate(360deg) scale( .9); }
+      100% { transform: rotate(720deg) scale(1.0); }
+    }
   
   .rollbox--keeper {
     border: 1px solid #ccc;
