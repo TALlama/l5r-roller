@@ -27,7 +27,7 @@ html {
       width: 5ch;
     }
 
-  .rollbox--roll-exploding {
+  .rollbox--action---roll-exploding {
     font-size: 150%;
     border: 1px solid #ccc;
     padding: 5px 25px;
@@ -68,6 +68,12 @@ html {
     grid-gap: 5px;
     padding: 5px 0;
   }
+  
+    .dice-tray + .dice-tray {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
   
   .rollbox--keeper {
     border: 1px solid #ccc;

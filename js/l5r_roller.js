@@ -24,6 +24,11 @@ class Rollable {
 }
 
 class Die extends Rollable {
+  constructor() {
+    super();
+    this.kept = false;
+  }
+  
   get face() {
     this._face || this.roll();
     return this._face;
@@ -105,6 +110,11 @@ class DicePool extends Rollable {
     this.dice.forEach(d => d.roll());
   }
   
+  addDie(die) {
+    this.dice.push(die);
+    this[`${die.dieType}Count`] += 1;
+  }
+  
   static forDice(dice) {
     let ringCount = dice.reduce((count, d) => d.constructor == RingDie ? count + 1 : count, 0);
     let skillCount = dice.reduce((count, d) => d.constructor == SkillDie ? count + 1 : count, 0);
@@ -120,17 +130,19 @@ function roll(ring, skill) {
 class Rollbox {
   constructor(root) {
     this.root = root;
+    this.addedDiceCount = 0;
   }
   
-  get ringCount() { return this.root.querySelector('.rollbox--ring').value; }
-  get skillCount() { return this.root.querySelector('.rollbox--skill').value; }
+  get ringCount() { return Number(this.root.querySelector('.rollbox--ring').value); }
+  get skillCount() { return Number(this.root.querySelector('.rollbox--skill').value); }
+  get keepCount() { return this.ringCount + this.addedDiceCount; }
   
   get currentDiceTray() { return this.root.querySelector('.rollbox--current-dice-tray'); }
   get kept() { return this.root.querySelectorAll('.rollbox--keeper---kept'); }
   get keptInFirst() { return this.root.querySelectorAll('.dice-tray:first-of-type .rollbox--keeper---kept'); }
   get keptInCurrent() { return this.root.querySelectorAll('.rollbox--current-dice-tray .rollbox--keeper---kept'); }
   
-  get keepsLeft() { return this.ringCount - this.keptInFirst.length; }
+  get keepsLeft() { return this.keepCount - this.keptInFirst.length; }
   get successes() { return this.keptCount(k => k.die.rolledSuccesses + k.die.rolledExploding); }
   get exploding() { return this.keptCount(k => k.die.rolledExploding, true); }
   get opportunities() { return this.keptCount(k => k.die.rolledOpportunities); }
@@ -183,8 +195,21 @@ class Rollbox {
     this.root.querySelectorAll('.dice-tray:not(.rollbox--current-dice-tray)').forEach(t => t.remove());
   }
   
-  showDice() {
-    let tray = new DiceTray(this.currentDiceTray, this.dicePool);
+  addDie(die) {
+    die.face || die.roll();
+    
+    this.addedDiceCount += 1;
+    
+    let tray = this.currentDiceTray.tray;
+    tray.addDie(die);
+    this.showDice(tray.dicePool);
+    this.updateOutcome();
+  }
+  
+  showDice(dicePool = this.dicePool) {
+    let trayRoot = this.currentDiceTray;
+    
+    let tray = trayRoot.tray || new DiceTray(trayRoot, dicePool);
     tray.empty();
     tray.addDice(this);
   }
@@ -213,22 +238,33 @@ class DiceTray {
   constructor(root, dicePool) {
     this.root = root;
     this.dicePool = dicePool;
+    
+    this.root.tray = this;
   }
   
   empty() {
     this.root.innerText = '';
   }
   
+  addDie(die) {
+    this.dicePool.addDie(die);
+  }
+  
   addDice(rollbox) {
     this.dicePool.dice.forEach(die => {
       let keepUi = document.createElement('article');
       keepUi.classList.add('rollbox--keeper');
+      keepUi.classList.toggle('rollbox--keeper---kept', die.kept);
       keepUi.die = die;
       
       let keepCheckUi = document.createElement('input');
       keepCheckUi.classList.add('sr-only');
       keepCheckUi.setAttribute('type', 'checkbox');
-      keepCheckUi.addEventListener('change', e => rollbox.keepChanged(e));
+      keepCheckUi.checked = die.kept;
+      keepCheckUi.addEventListener('change', e => {
+        die.kept = e.target.checked;
+        rollbox.keepChanged(e);
+      });
       
       let dieUi = document.createElement('label');
       dieUi.classList.add('die');
@@ -264,9 +300,17 @@ class DiceTray {
 
 document.addEventListener('click', event => {
   if (event.target.matches('.rollbox--trigger')) {
+    event.preventDefault();
     Rollbox.rooted(event.target.closest('.rollbox')).roll(event);
-  } else if (event.target.matches('.rollbox--roll-exploding')) {
+  } else if (event.target.matches('.rollbox--action---roll-exploding')) {
+    event.preventDefault();
     Rollbox.rooted(event.target.closest('.rollbox')).rollExploding(event);
+  } else if (event.target.matches('.rollbox--action---add-ring-die')) {
+    event.preventDefault();
+    Rollbox.rooted(event.target.closest('.rollbox')).addDie(new RingDie());
+  } else if (event.target.matches('.rollbox--action---add-skill-die')) {
+    event.preventDefault();
+    Rollbox.rooted(event.target.closest('.rollbox')).addDie(new SkillDie());
   }
 })
 

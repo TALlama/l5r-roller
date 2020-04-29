@@ -85,7 +85,12 @@
       </header>
       
       <article class='dice-tray rollbox--current-dice-tray'></article>
-      <a href='#' class='rollbox--roll-exploding hidden' data-shown-if='exploding'>roll <span data-shows='exploding'>0</span> exploding</a>
+
+      <article class='rollbox--actions'>
+        <a href='#' class='rollbox--action rollbox--action---roll-exploding hidden' data-shown-if='exploding'>roll <span data-shows='exploding'>0</span> exploding</a>
+        <a href='#' class='rollbox--action rollbox--action---add-ring-die'>+ Ring</a>
+        <a href='#' class='rollbox--action rollbox--action---add-skill-die'>+ Skill</a>
+      </article>
       
       <dl class='rollbox--outcome'>
         <dt>keeps left</dt>
