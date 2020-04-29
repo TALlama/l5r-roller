@@ -6,7 +6,7 @@
     "type": "image/png",
     "sizes": "192x192"
   }],
-  "start_url": "/?utm_source=homescreen",
+  "start_url": "/l5r-roller?utm_source=homescreen",
   "background_color": "#fafafa",
   "theme_color": "#fafafa"
 }
