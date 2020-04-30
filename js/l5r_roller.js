@@ -152,6 +152,7 @@ class Rollbox {
   
   roll() {
     this.rerolls = 0;
+    this.currentDiceTray.tray = null;
     
     this.dicePool = new DicePool(this.ringCount, this.skillCount);
     this.dicePool.roll();
