@@ -233,6 +233,17 @@ class Rollbox {
   static rooted(el) {
     return el.rollbox = el.rollbox || new Rollbox(el);
   }
+  
+  static setFromParams(search = window.location.search) {
+    let params = new URLSearchParams(search);
+    let ring = Number(params.get('ring') || 0);
+    let skill = Number(params.get('skill') || 0);
+    
+    if (ring + skill === 0) {return;}
+    
+    document.querySelectorAll('.rollbox--ring').forEach(e => e.value = ring);
+    document.querySelectorAll('.rollbox--skill').forEach(e => e.value = skill);
+  }
 }
 
 class DiceTray {
@@ -320,4 +331,5 @@ document.addEventListener('click', event => {
   }
 })
 
+Rollbox.setFromParams(window.location.search);
 document.querySelector('.rollbox--trigger').click();
