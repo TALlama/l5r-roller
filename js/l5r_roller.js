@@ -24,8 +24,9 @@ class Rollable {
 }
 
 class Die extends Rollable {
-  constructor() {
+  constructor(face = null) {
     super();
+    this._face = face;
     this.kept = false;
   }
   
@@ -134,7 +135,9 @@ class Rollbox {
   }
   
   get ringCount() { return Number(this.root.querySelector('.rollbox--ring').value); }
+  set ringCount(v) { this.root.querySelector('.rollbox--ring').value = v }
   get skillCount() { return Number(this.root.querySelector('.rollbox--skill').value); }
+  set skillCount(v) { this.root.querySelector('.rollbox--skill').value = v }
   get keepCount() { return this.ringCount + this.addedDiceCount; }
   
   get currentDiceTray() { return this.root.querySelector('.rollbox--current-dice-tray'); }
@@ -196,12 +199,12 @@ class Rollbox {
     this.root.querySelectorAll('.dice-tray:not(.rollbox--current-dice-tray)').forEach(t => t.remove());
   }
   
-  addDie(die) {
+  addDie(die, {addAKeep} = {addAKeep: true}) {
     die.face || die.roll();
     
-    this.addedDiceCount += 1;
+    if (addAKeep && die.dieType == 'ring') { this.addedDiceCount += 1;}
     
-    let tray = this.currentDiceTray.tray;
+    let tray = this.currentDiceTray.tray || new DiceTray(this.currentDiceTray, new DicePool(0, 0));
     tray.addDie(die);
     this.showDice(tray.dicePool, {roll: die});
     this.updateOutcome();
@@ -235,14 +238,31 @@ class Rollbox {
   }
   
   static setFromParams(search = window.location.search) {
+    let rollbox = Rollbox.rooted(document.querySelector('.rollbox'));
     let params = new URLSearchParams(search);
+    
     let ring = Number(params.get('ring') || 0);
     let skill = Number(params.get('skill') || 0);
+    let hasCounts = ring + skill > 0;
     
-    if (ring + skill === 0) {return;}
+    let rings = (params.get('rings') || '').split(',').filter(s => s);
+    let skills = (params.get('skills') || '').split(',').filter(s => s);
+    let hasFaces = [...rings, ...skills].length > 0;
     
-    document.querySelectorAll('.rollbox--ring').forEach(e => e.value = ring);
-    document.querySelectorAll('.rollbox--skill').forEach(e => e.value = skill);
+    if (hasCounts) {
+      rollbox.ringCount = ring;
+      rollbox.skillCount = skill;
+      
+      document.querySelector('.rollbox--trigger').click();
+    } else if (hasFaces) {
+      rollbox.ringCount = rings.length;
+      rollbox.skillCount = skills.length;
+      
+      rings.forEach(d => rollbox.addDie(new RingDie(d), {addAKeep: false}));
+      skills.forEach(d => rollbox.addDie(new SkillDie(d)));
+    } else {
+      document.querySelector('.rollbox--trigger').click();
+    }
   }
 }
 
@@ -332,4 +352,3 @@ document.addEventListener('click', event => {
 })
 
 Rollbox.setFromParams(window.location.search);
-document.querySelector('.rollbox--trigger').click();
